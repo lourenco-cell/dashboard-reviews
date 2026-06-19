@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesa & Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1610;--paper:#f7f4ef;--warm:#e8e2d9;--rule:#d4cdc3;--ember:#c4450f;--ember-dim:#f0d4c8;--gold:#d4920a;--gold-dim:#f5e9c8;--green:#1a5c35;--green-dim:#c8e6d8;--muted:#7a7269;--card:#fff;--radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;line-height:1.5;min-height:100vh;}
+header{background:var(--ink);color:var(--paper);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;}.logo em{color:var(--gold);}
+.mpill{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:20px;}
+.back-btn{display:none;align-items:center;gap:6px;background:none;border:none;color:var(--paper);font-size:14px;cursor:pointer;padding:0;}
+.back-btn.vis{display:flex;}
+main{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
+.loading{text-align:center;padding:60px 0;}
+.spinner{width:40px;height:40px;border:3px solid var(--rule);border-top-color:var(--ember);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.slabel{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--rule);}
+#overview{display:none;}#overview.vis{display:block;}
+#detail{display:none;}#detail.vis{display:block;}
+#overview.hidden{display:none;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.month-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:2px;}
+.month-sub{font-size:13px;color:var(--muted);}
+.kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+@media(max-width:480px){.kpi-strip{grid-template-columns:1fr 1fr;}}
+.kpi{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);padding:16px;}
+.kpi-lbl{font-size:10px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:30px;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.rest-list{display:grid;gap:10px;}
+.rest-row{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:box-shadow .18s,border-color .18s;display:flex;align-items:center;gap:14px;}
+.rest-row:hover{box-shadow:0 3px 16px rgba(0,0,0,.08);border-color:#bbb;}
+.rrl{flex:1;min-width:0;}
+.rrl-name{font-family:'DM Serif Display',serif;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rrm{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:60px;}
+.rrm-val{font-family:'DM Serif Display',serif;font-size:22px;line-height:1;}
+.rrm-val.hit{color:var(--green);}.rrm-val.miss{color:#b91c1c;}
+.rrm-lbl{font-size:10px;color:var(--muted);text-align:center;}
+.rrr{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:50px;}
+.rrr-val{font-family:'DM Serif Display',serif;font-size:22px;line-height:1;}
+.rrr-lbl{font-size:10px;color:var(--muted);text-align:right;}
+.rrg{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:46px;}
+.rrg-val{font-family:'DM Serif Display',serif;font-size:18px;line-height:1;color:var(--ember);font-weight:bold;}
+.rrg-lbl{font-size:9px;color:var(--muted);text-align:center;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.chevron{color:var(--rule);font-size:20px;margin-left:4px;flex-shrink:0;}
+.sbar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:7px;width:100%;gap:1px;}
+.sbar-p{background:var(--green);}.sbar-ng{background:#b91c1c;}
+.target-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;margin-top:3px;}
+.target-badge.hit{background:var(--green-dim);color:var(--green);}.target-badge.miss{background:#fde8e8;color:#b91c1c;}
+.target-btn{background:none;border:1px solid var(--rule);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;}
+.target-btn:hover{background:var(--warm);}
+.refresh-btn{background:none;border:1px solid var(--rule);border-radius:6px;padding:6px 14px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:20px;}
+.dhero{background:var(--ink);border-radius:var(--radius);padding:22px 20px;margin-bottom:20px;color:var(--paper);}
+.dh-name{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:10px;}
+.dh-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.dh-rating{font-family:'DM Serif Display',serif;font-size:48px;color:var(--gold);line-height:1;}
+.dh-total{font-size:12px;color:#999;}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+@media(max-width:480px){.dgrid{grid-template-columns:1fr 1fr;}}
+.dkpi{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);padding:14px 16px;}
+.dkpi-lbl{font-size:10px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.dkpi-val{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;}
+.dkpi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.dist-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.dist-lbl{width:26px;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0;}
+.dist-bg{flex:1;height:7px;background:var(--warm);border-radius:3px;overflow:hidden;}
+.dist-fill{height:100%;border-radius:3px;background:var(--gold);}
+.dist-n{width:22px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.rev-item{border-top:1px solid var(--rule);padding:14px 0;}
+.rev-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px;}
+.rev-author{font-weight:600;font-size:13px;}
+.rev-date{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+.rev-text{font-size:13px;color:#444;line-height:1.55;margin-top:4px;}
+.no-rev{font-size:13px;color:var(--muted);padding:24px 0;text-align:center;}
+.target-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;}
+.target-modal.open{display:flex;}
+.target-sheet{background:white;border-radius:16px 16px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;margin:0 auto;}
+.target-sheet h3{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:4px;}
+.target-sheet p{font-size:13px;color:#7a7269;margin-bottom:20px;}
+.target-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #e8e2d9;}
+.target-name{font-size:14px;font-weight:500;flex:1;margin-right:12px;}
+.target-input{width:70px;padding:6px 10px;border:1px solid #d4cdc3;border-radius:7px;font-size:15px;text-align:center;}
+.target-input:focus{outline:none;border-color:var(--ember);}
+.target-save{width:100%;margin-top:20px;padding:13px;background:#1a1610;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;}
+</style>
+</head>
+<body>
+<header>
+  <button class="back-btn" id="backBtn" onclick="showOv()">&#8249; Todos os restaurantes</button>
+  <div class="logo" id="hlogo">Mesa <em>&</em> Reviews</div>
+  <div class="mpill" id="mpill">--</div>
+</header>
+<main>
+  <div class="loading" id="loading"><div class="spinner"></div><p style="color:var(--muted);font-size:14px">A carregar reviews&#8230;</p></div>
+  <div id="overview">
+    <div class="top-bar">
+      <div><div class="month-title" id="ovTitle">--</div><div class="month-sub">Vis&atilde;o mensal &middot; todos os restaurantes</div></div>
+      <button class="target-btn" onclick="openTargets()">&#127919; Objetivos</button>
+    </div>
+    <div class="kpi-strip" id="kpiStrip"></div>
+    <div class="slabel">Os teus restaurantes &mdash; clica para ver o detalhe</div>
+    <div class="rest-list" id="restList"></div>
+  </div>
+  <div id="detail">
+    <button class="refresh-btn" onclick="showOv()">&larr; Todos os restaurantes</button>
+    <div class="dhero" id="dhero"></div>
+    <div class="dgrid" id="dgrid"></div>
+    <div class="slabel">Distribui&ccedil;&atilde;o de estrelas &mdash; este m&ecirc;s</div>
+    <div id="ddist" style="margin-bottom:22px"></div>
+    <div class="slabel">Reviews recentes</div>
+    <div id="drevs"></div>
+  </div>
+  <div class="target-modal" id="targetModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="target-sheet">
+      <h3>Objetivos por restaurante</h3>
+      <p>Define a m&eacute;dia m&iacute;nima mensal. Verde se atingiu, vermelho se n&atilde;o.</p>
+      <div id="targetRows"></div>
+      <button class="target-save" onclick="saveTargets()">Guardar</button>
+    </div>
+  </div>
+</main>
+
+<script>
+var API_KEY = 'AIzaSyD7V-C71XfWiyiLAy5Z4RBeVGUXW8KVoWQ';
+
+var PLACES = [
+  {label:'doBeco Estefania', placeId:'ChIJaaAF88czGQ0RUMQJzpMz8vA'},
+  {label:'doBeco Santos',    placeId:'ChIJQe3K4-g1GQ0RkZtyUwaxJYk'},
+  {label:'doBeco Gulbenkian',placeId:'ChIJt6IqJAAzGQ0R70PTTuH3wRs'},
+  {label:'Beco Bagels Estrela',placeId:'ChIJOd50ZKUzGQ0RAGwZQsrG7s0'},
+  {label:'doBeco Alvalade',  placeId:'ChIJwUQfbrUzGQ0R1niba0KwF6E'}
+];
+
+var allData = [];
+var TARGETS = {};
+try{var ts=localStorage.getItem('mr_targets');if(ts)TARGETS=JSON.parse(ts);}catch(e){}
+
+function init(){
+  var now=new Date();
+  document.getElementById('mpill').textContent=now.toLocaleDateString('pt-PT',{month:'short',year:'numeric'});
+  document.getElementById('ovTitle').textContent=now.toLocaleDateString('pt-PT',{month:'long',year:'numeric'}).replace(/^./,function(c){return c.toUpperCase();});
+  var sc=document.createElement('script');
+  sc.src='https://maps.googleapis.com/maps/api/js?key='+API_KEY+'&libraries=places&v=weekly&callback=mapsReady';
+  sc.async=true;sc.defer=true;
+  document.head.appendChild(sc);
+}
+
+window.mapsReady = function(){
+  var dummy=document.createElement('div');
+  dummy.style.cssText='position:absolute;width:1px;height:1px;visibility:hidden;';
+  document.body.appendChild(dummy);
+  var map=new google.maps.Map(dummy,{center:{lat:38.72,lng:-9.14},zoom:12});
+  var svc=new google.maps.places.PlacesService(map);
+  allData=new Array(PLACES.length);
+  var done=0;
+  PLACES.forEach(function(p,idx){
+    svc.getDetails({
+      placeId:p.placeId,
+      fields:['name','rating','user_ratings_total','reviews']
+    },function(place,status){
+      if(status===google.maps.places.PlacesServiceStatus.OK){
+        allData[idx]={name:place.name||p.label,rating:place.rating||0,totalReviews:place.user_ratings_total||0,reviews:place.reviews||[]};
+      } else {
+        allData[idx]={name:p.label,rating:0,totalReviews:0,reviews:[],error:'Erro: '+status};
+      }
+      done++;
+      if(done===PLACES.length){
+        document.getElementById('loading').style.display='none';
+        document.getElementById('overview').classList.add('vis');
+        renderOv();
+      }
+    });
+  });
+};
+
+function avg(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;}
+function fmt(n){return n?n.toFixed(1):'--';}
+function stH(n,sz){sz=sz||14;var h='';for(var i=1;i<=5;i++){h+='<span style="color:'+(n>=i?'#d4920a':'#d4cdc3')+';font-size:'+sz+'px">&#9733;</span>';}return h;}
+function revStars(n){var c=n===5?'#1a5c35':n===4?'#d4920a':'#b91c1c';var h='';for(var i=1;i<=5;i++){h+='<span style="color:'+(i<=n?c:'#d4cdc3')+';font-size:14px">&#9733;</span>';}return h;}
+
+function monthRevs(r){
+  var ms=new Date();ms.setDate(1);ms.setHours(0,0,0,0);
+  return (r.reviews||[]).filter(function(rv){return new Date(rv.time*1000)>=ms;});
+}
+
+function renderOv(){
+  var data=allData.map(function(r){return {name:r.name,rating:r.rating,totalReviews:r.totalReviews,reviews:r.reviews,error:r.error,mr:r.error?[]:monthRevs(r)};});
+  var allR=data.reduce(function(a,d){return a.concat(d.mr.map(function(rv){return rv.rating;}));;},[]);
+  var tot=allR.length,ga=fmt(avg(allR));
+  var pos=allR.filter(function(v){return v>=4;}).length;
+  var pct=tot?Math.round(pos/tot*100):0;
+
+  document.getElementById('kpiStrip').innerHTML=
+    '<div class="kpi"><div class="kpi-lbl">Reviews este mês</div><div class="kpi-val">'+tot+'</div><div class="kpi-sub">todos os restaurantes</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Média do mês</div><div class="kpi-val">'+ga+'</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Reviews positivas</div><div class="kpi-val">'+pct+'%</div><div class="kpi-sub">'+pos+' de '+tot+' com ≥4★</div></div>';
+
+  document.getElementById('restList').innerHTML=data.map(function(r,i){
+    if(r.error)return '<div class="rest-row" style="cursor:default"><div class="rrl"><div class="rrl-name">'+r.name+'</div><div style="font-size:12px;color:var(--ember);margin-top:4px">⚠ '+r.error+'</div></div></div>';
+    var rat=r.mr.map(function(rv){return rv.rating;});
+    var ma=avg(rat),posN=rat.filter(function(v){return v>=4;}).length,negN=rat.filter(function(v){return v<=3;}).length,tot2=rat.length||1;
+    var tgt=TARGETS[i],hit=tgt&&ma>=tgt,miss=tgt&&ma<tgt&&rat.length>0;
+    return '<div class="rest-row" onclick="showDet('+i+')">'+
+      '<div class="rrl"><div class="rrl-name">'+r.name+'</div>'+
+      '<div class="sbar"><div class="sbar-p" style="flex:'+Math.round(posN/tot2*100)+'"></div><div class="sbar-ng" style="flex:'+Math.round(negN/tot2*100)+'"></div></div></div>'+
+      '<div class="rrm"><div class="rrm-val '+(hit?'hit':miss?'miss':'')+'">'+( rat.length?fmt(ma):'--')+'</div><div class="rrm-lbl">média<br>do mês</div>'+(tgt?'<span class="target-badge '+(hit?'hit':'miss')+'">'+(hit?'✓':'×')+' obj. '+tgt.toFixed(1)+'</span>':'')+'</div>'+
+      '<div class="rrr"><div class="rrr-val">'+rat.length+'</div><div class="rrr-lbl">reviews<br>este mês</div></div>'+
+      '<div class="rrg"><div class="rrg-val">'+(r.rating?r.rating.toFixed(1):'--')+'</div><div class="rrg-lbl">Google</div></div>'+
+      '<span class="chevron">›</span></div>';
+  }).join('');
+}
+
+var aR=null,aI=0;
+function showDet(i){
+  aR=allData[i];aI=i;
+  document.getElementById('overview').classList.add('hidden');
+  document.getElementById('detail').classList.add('vis');
+  document.getElementById('backBtn').classList.add('vis');
+  document.getElementById('hlogo').style.display='none';
+  renderDet();window.scrollTo(0,0);
+}
+function showOv(){
+  document.getElementById('overview').classList.remove('hidden');
+  document.getElementById('detail').classList.remove('vis');
+  document.getElementById('backBtn').classList.remove('vis');
+  document.getElementById('hlogo').style.display='';
+}
+
+function renderDet(){
+  var r=aR,mr=monthRevs(r),mrat=mr.map(function(rv){return rv.rating;});
+  var ma=avg(mrat),mpos=mrat.filter(function(v){return v>=4;}).length;
+  var mpct=mrat.length?Math.round(mpos/mrat.length*100):0;
+  document.getElementById('dhero').innerHTML=
+    '<div class="dh-name">'+r.name+'</div>'+
+    '<div class="dh-row"><div class="dh-rating">'+(r.rating?r.rating.toFixed(1):'--')+'</div>'+
+    '<div><div>'+stH(r.rating,18)+'</div><div class="dh-total">'+((r.totalReviews||0).toLocaleString('pt-PT'))+' reviews no total (desde abertura)</div></div></div>';
+  document.getElementById('dgrid').innerHTML=
+    '<div class="dkpi"><div class="dkpi-lbl">Reviews este mês</div><div class="dkpi-val">'+mrat.length+'</div></div>'+
+    '<div class="dkpi"><div class="dkpi-lbl">Média do mês</div><div class="dkpi-val">'+(mrat.length?fmt(ma):'--')+'</div></div>'+
+    '<div class="dkpi"><div class="dkpi-lbl">Positivas este mês</div><div class="dkpi-val">'+mpct+'%</div><div class="dkpi-sub">'+mpos+' de '+mrat.length+'</div></div>'+
+    '<div class="dkpi"><div class="dkpi-lbl">Média global Google</div><div class="dkpi-val">'+(r.rating?r.rating.toFixed(1):'--')+'</div></div>'+
+    '<div class="dkpi"><div class="dkpi-lbl">Total reviews</div><div class="dkpi-val">'+((r.totalReviews||0).toLocaleString('pt-PT'))+'</div><div class="dkpi-sub">desde abertura</div></div>'+
+    '<div class="dkpi"><div class="dkpi-lbl">Avaliação Google</div><div class="dkpi-val">'+stH(r.rating,14)+'</div></div>';
+  var dist=[5,4,3,2,1].map(function(n){return {n:n,c:mrat.filter(function(v){return v===n;}).length};});
+  var maxD=Math.max.apply(null,dist.map(function(d){return d.c;}).concat([1]));
+  document.getElementById('ddist').innerHTML=dist.map(function(d){
+    return '<div class="dist-row"><span class="dist-lbl">'+d.n+'★</span><div class="dist-bg"><div class="dist-fill" style="width:'+Math.round(d.c/maxD*100)+'%"></div></div><span class="dist-n">'+d.c+'</span></div>';
+  }).join('');
+  var revs=(r.reviews||[]).slice().sort(function(a,b){return b.time-a.time;}).slice(0,10);
+  document.getElementById('drevs').innerHTML=revs.length?revs.map(function(rv){
+    var d=new Date(rv.time*1000).toLocaleDateString('pt-PT',{day:'2-digit',month:'short',year:'numeric'});
+    return '<div class="rev-item"><div class="rev-top"><span class="rev-author">'+rv.author_name+'</span><span class="rev-date">'+d+'</span></div><div style="margin-bottom:4px">'+revStars(rv.rating)+'</div><div class="rev-text">'+(rv.text||'<em style="color:var(--muted)">Sem texto</em>')+'</div></div>';
+  }).join(''):'<div class="no-rev">Sem reviews disponíveis.</div>';
+}
+
+function openTargets(){
+  document.getElementById('targetRows').innerHTML=allData.map(function(r,i){
+    return '<div class="target-row"><span class="target-name">'+r.name+'</span><input class="target-input" id="ti_'+i+'" type="number" min="1" max="5" step="0.1" placeholder="—" value="'+(TARGETS[i]||'')+'"></div>';
+  }).join('');
+  document.getElementById('targetModal').classList.add('open');
+}
+function saveTargets(){
+  allData.forEach(function(_,i){var v=parseFloat(document.getElementById('ti_'+i).value);TARGETS[i]=isNaN(v)?null:Math.min(5,Math.max(1,v));});
+  try{localStorage.setItem('mr_targets',JSON.stringify(TARGETS));}catch(e){}
+  document.getElementById('targetModal').classList.remove('open');renderOv();
+}
+
+init();
+</script>
+</body>
+</html>
